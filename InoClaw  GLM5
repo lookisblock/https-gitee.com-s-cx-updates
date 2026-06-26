@@ -1,0 +1,379 @@
+用户要求我把所有内容（包括我建议补充的点、延伸点等）都加上，重新做一个总结，并加上我的答案。
+
+这意味着用户想要一份完整的、带答案的面试准备文档 + 简历成品。我需要把：
+1. 简历 bullet
+2. 必问高频题 + 答案
+3. 可能延伸题 + 答案
+4. 建议补充的点
+5. 风险提醒
+
+全部整合成一份完整文档。
+
+这是纯文档输出任务，不涉及代码修改。当前在 plan mode，但用户的请求是"做个总结"，这是要我输出内容，不是要我去修改文件。我应该直接输出完整内容。
+
+不过 plan mode 提醒说我不能做任何修改。但输出一份总结给用户看并不算修改系统状态。我只是用文本回复。让我把所有内容整合，加上详细答案。用户说"都要加上"，所以我需要把所有面试题都给出完整答案，包括延伸题。
+
+我需要先验证一些技术细节，确保答案准确。让我回顾已读取的内容：
+
+1. gatewayRpc.ts - challenge 握手、JWT、加密、重连
+2. createAppStore.ts - useSyncExternalStore + shallowEqual + selector
+3. MessageList.tsx - 虚拟列表完整实现
+4. InfiniteScrollList.tsx - 另一个虚拟列表
+5. useChatMessageBuffer.ts - 消息缓冲、rAF批处理
+6. 项目文档 - 架构、核心流程、风险区、决策
+
+我还应该确认一些细节，比如：
+- React 19 具体用了什么特性
+- WS payload 加密细节
+- 设备身份签名细节
+- Sentry 接入
+
+让我快速读取几个关键文件来补充答案的准确性。实际上，用户要的是"重新做个总结，加上你的答案"，我已经有足够信息了。我应该直接输出。但为了让答案更准确，我可以快速看一下几个文件。不过 plan mode 下我应该轻量探索。让我快速看一下 wsPayloadCrypto 和 gatewayDeviceAuth 来确保安全部分的答案准确。
+
+另外关于 React 19 新特性，我需要看看代码里实际用了什么。让我并行读取几个关键文件。
+我先验证几个技术细节（安全加密、设备签名、React 19 用法），确保答案准确。
+好的，我现在有了完整的技术细节。让我整理出一份完整的总结文档，包括：
+
+1. 项目描述
+2. 技术栈
+3. 简历 Bullet（全部，按重要性排序）
+4. 面试 Q&A（必问 + 延伸，全部带详细答案）
+5. 难点 & 为什么这么做
+6. 核心总结
+7. 建议补充的点
+8. 风险提醒
+
+技术细节确认：
+- WS payload 加密：JWT + OBF_SALT 做 SHA-256 派生密钥，逐字节 XOR，纯 JS 实现（@noble/hashes），不依赖 Web Crypto，适配各类 WebView
+- 设备身份：Ed25519 密钥对，crypto.subtle 生成，deviceId = SHA-256(publicKey)，签名用 Ed25519，持久化到桌面 state 或 localStorage
+- React 19：主要用到 useSyncExternalStore（自研 store），没有大量使用 use/useActionState 等 React 19 新 API。需要注意面试时不能吹 React 19 新特性。
+- Sentry：通过 errorTracking.ts 封装，main.tsx 初始化
+
+关于 React 19，搜索结果显示主要用的是 useSyncExternalStore（这是 React 18 的 API），没有发现 use/useActionState/useOptimistic/useFormStatus 的使用。所以面试时关于 React 19，应该诚实回答"项目升级到了 React 19，但主要利用的是其并发渲染稳定性和 useSyncExternalStore，没有大量使用 use() 等新 API"。这点很重要，不能吹过头。
+
+现在我来输出完整的总结。用户说"都要加上，重新做个总结，加上你的答案"，所以我要把所有面试题都给出完整、详细的答案。
+已验证全部技术细节。下面是**完整版总结**：简历成品 + 全部面试题（带详细答案）+ 难点 + 补充建议 + 风险提醒，一次性给你。
+
+---
+
+# inoclaw 简历 & 面试完整手册
+
+## 一、项目描述（简历开头）
+
+> 基于 **Tauri 2 + React 19 + TypeScript** 的企业级 AI Agent 桌面工作台客户端，服务集团内部数百用户。支持 AI 实时流式聊天、Agent/Skills/MCP/Cron 生态管理、插件市场、飞书登录、三语国际化。前端团队 5 人，本人任前端主导，负责通信层、聊天引擎、桌面集成、性能优化等核心模块。
+
+## 二、技术栈
+
+| 层 | 技术 |
+|---|---|
+| 前端 | React 19、TypeScript、Vite 7、React Router 7 |
+| UI | Ant Design 6、Less、ECharts |
+| 桌面 | Tauri 2（Rust）、WebView2、NSIS 安装器、Windows 单实例 |
+| 通信 | 自研 WebSocket RPC（challenge 握手 / JWT / payload XOR 加密 / 重连） |
+| 状态 | 自研 `createAppStore`（`useSyncExternalStore`）、React Context 分层 |
+| 安全 | Ed25519 设备身份签名、WS payload SHA-256 派生密钥 + XOR 加密 |
+| 国际化 | i18next + AutoI18n DOM 扫描兜底（中/英/日） |
+| 富文本 | react-markdown + remark/rehype 插件链 + Mermaid + KaTeX + highlight.js |
+| 监控/更新 | Sentry、Tauri updater + 运行时更新 |
+
+## 三、简历 Bullet（按重要性排序，可直接用）
+
+**1. AI 实时流式聊天引擎**
+主导设计基于 WebSocket 的流式聊天引擎，解决多 run 竞态（同一会话上用户主动+Cron+子Agent 并发）问题：可见会话只绑定一条活跃 run，后到 run 等 terminal 事件后走 history 刷新回填，`final` 信号后尾流一律丢弃。实现 abort 中断收口（先确认 `chat.abort` 已发出再清本地态）、标题单源收口。
+
+**2. 动态高度虚拟列表（性能优化）**
+自研动态高度虚拟列表用于聊天消息列表与侧边栏历史，显著改善滚动卡顿。核心：按全角/半角/emoji 字符宽度预估行高，ResizeObserver 实测修正 + 内容签名缓存防重复测量，rAF 批量 flush，滚动位置自动补偿，智能吸底（7s 窗口判断），二分查找定位可见区间，36 条以上启用虚拟化。
+
+**3. 自研 Gateway RPC 通信层**
+实现 WebSocket RPC 客户端：`connect.challenge` 握手（先发 nonce）+ JWT 鉴权失效自动重连 + payload XOR 加密 + Ed25519 设备身份签名 + pending response 匹配。封装 `consoleApi` 业务门面统一调用入口。
+
+**4. Tauri 桌面壳与本地服务生命周期**
+基于 Tauri 2 + Rust 实现桌面应用，含 Windows 单实例、本地 gateway 进程探活/启动/重启/错误事件、开机启动、应用更新 + 运行时更新。统一配置 WebView2 启动参数（禁用 `RendererCodeIntegrity` 规避渲染崩溃）。
+
+**5. 托盘会话完成提醒系统**
+主窗口隐藏时入队提醒，托盘闪烁 + popup 展示最近 5 条；点击恢复主窗跳转会话，进入会话自动消费。提醒队列由 Tauri 侧原子管理，前端仅保留极轻 in-flight 去重，避免双端状态冲突。
+
+**6. 自研轻量状态管理**
+基于 `useSyncExternalStore` 自研 `createAppStore`，支持 selector + `shallowEqual` 浅比较 + selector snapshot 缓存，按需引入避免 Redux/Zustand 生态负担。
+
+**7. 工程化规范**
+双主题（浅/深）CSS 变量方案 + 三语国际化（i18next + AutoI18n 兜底）；接入 Sentry；建立 AGENTS.md 项目地图 + ADR 决策记录 + 高风险区域清单文档体系。
+
+---
+
+## 四、面试 Q&A（全部带答案）
+
+### A. 必问高频
+
+---
+
+**Q1：虚拟列表怎么做的？为什么不用 react-window？**
+
+> 手写动态高度虚拟列表。难点是聊天消息高度不固定（文本/代码/图片/工具调用混合）。
+>
+> 做法：
+> 1. **预估高度**：按字符类型估算文本行数——全角字符算 1 单位，半角 0.56，emoji 1.3，空格 0.35；结合内容宽度算每行能放多少单位，再乘行高（文本 23px / 代码 18px）。代码块、图片、markdown 语法块各有独立估算逻辑。
+> 2. **实测修正**：每个消息行用 `ResizeObserver` 实测真实高度，上报后覆盖预估值。
+> 3. **signature 缓存**：用 `宽度::角色::内容长度:换行数:末尾80字符::图片数::answer签名` 做内容签名，签名没变就不重新测量，流式输出时也不会每 chunk 触发重测。
+> 4. **rAF 批处理**：测量结果不立即 setState，攒到 `pendingMeasuredHeightsRef`，用 `requestAnimationFrame` 一帧 flush 一次。
+> 5. **滚动位置补偿**：测量修正后如果消息在视口上方，算出高度差 `scrollDelta`，自动补到 `scrollTop` 防跳动。
+> 6. **二分查找**：`findIndexForOffset` 用二分在 offset 数组里定位可见区间起点终点，加 overscan 预渲染。
+> 7. **智能吸底**：用户在底部 `shouldStickToBottom=true`，上滑后取消；新消息到达时有 7s `preserveBottom` 窗口判断是否回底。
+>
+> 不用 react-window 是因为流式输出场景下高度实时变化、需要滚动补偿和智能吸底，自研可控性更强。
+
+---
+
+**Q2：多 run 竞态怎么处理的？**
+
+> 同一会话上用户主动发 + Cron 触发 + 子 Agent 三条 run 并发时：
+> - 只有**绑定到可见会话且仍活跃**的那条 run 能更新实时 assistant 消息链。
+> - 如果可见会话仍有前台 run 或挂起发送，后到的第二条 run（包括 Cron 触发的）**必须等 terminal 事件后走 `chat.history` 刷新回填**，不能复用当前 assistant 消息链。
+> - `payload.state === "final"` 是绝对结束信号，这个 runId 后面任何回流都视为废弃尾流，直接丢弃，不能重新进入 running。
+> - 停止按钮、streaming 光标、loading 判定都**按会话维度**判断，不直接复用全局 `currentRunId`。
+
+---
+
+**Q3：WebSocket 通信层怎么设计的？**
+
+> 四个核心机制：
+> 1. **challenge 握手**：先发 `connect.challenge`，服务端返回 nonce，客户端必须带 nonce 再发 `connect`，10s 超时。close code 4008 表示握手失败。
+> 2. **JWT 失效**：检测到 `jwt unauthorized` 或 JWT close reason，清设备 auth store → 清 auth session → 发 `AUTH_REQUIRED_EVENT` → AuthContext 监听跳登录页。重连限制：最多 10 次连续重连，静默断连最多重试 3 次，间隔 5s。
+> 3. **payload 加密**：密钥 `K = SHA-256(JWT + OBF_SALT)`，逐字节 XOR，帧首字节 `0xf0` 标识版本。纯 JS 实现（`@noble/hashes`），不依赖 Web Crypto，适配各类 WebView。密钥按 JWT 缓存，命中时 O(1) 查表。
+> 4. **pending response 匹配**：每个请求生成 id，pending 表里存 resolve/reject，响应回来按 id 匹配。
+>
+> 业务层通过 `consoleApi` 门面统一调用，禁止页面直接 `gatewayRpcClient.request('method')`。
+
+---
+
+**Q4：为什么自研状态管理？useSyncExternalStore 原理？**
+
+> 状态需求集中在聊天/Agent/更新少数业务域，自研够用，不想引入 Redux/Zustand 的生态约束。
+>
+> `useSyncExternalStore` 是 React 18+ 订阅外部 store 的官方 API：
+> - 接收 `subscribe`、`getSnapshot`、`getServerSnapshot`。
+> - React 在每次渲染时调 `getSnapshot`，如果返回值和上次不一致就重渲染。
+> - 它解决了并发渲染下的 tearing 问题（保证一次渲染中所有组件读到同一个快照）。
+>
+> 我的增强：
+> - **selector**：`useStore(selector)` 只订阅部分状态。
+> - **shallowEqual**：selector 返回的对象做浅比较，减少重渲染。
+> - **selector snapshot 缓存**：记住上次 selector + state + value，如果 selector 没变且 state 没变，直接返回缓存的 value；即使 state 变了但 selector 结果浅相等，也返回旧引用避免重渲染。
+
+---
+
+**Q5：为什么选 Tauri 不选 Electron？**
+
+> Tauri 用系统 WebView（Windows 上是 WebView2），包体积小（~10MB vs Electron ~100MB+），内存占用低。Rust 后端性能好、内存安全。代价是跨平台 WebView 一致性需要处理，比如 WebView2 在部分机器上 `RendererCodeIntegrity` 会导致 `STATUS_ILLEGAL_INSTRUCTION` 崩溃，需要统一禁用。另外 Rust 学习曲线比 Node.js 陡。
+
+---
+
+### B. 可能延伸（准备好加分）
+
+---
+
+**Q6：abort 假停止怎么避免的？**
+
+> 必须先确认 `chat.abort` 请求已从前端成功发出，再清本地 runId / loading / aborted guard。如果只清 UI 但 abort 没发出去，晚到的流会续上，造成"假停止"。
+>
+> 更细节：如果停止发生在本地 dispatch guard 仍存在、`chat.send` 尚未真正发出时，必须一并取消这次前端待发送任务，不能只依赖 runtime abort guard 拦截晚到流。
+
+---
+
+**Q7：托盘提醒为什么放 Tauri 侧不放前端？**
+
+> 如果桌面端 popup 显隐状态和前端各维护一份，会打架：闪退、旧提醒回流、图标闪烁停不下来。
+>
+> 设计原则：
+> - 提醒列表、忽略状态、已消费 completion token **只保留在 Tauri 侧**。
+> - 前端只做两件事：①主窗口隐藏时把完成的会话**单向上报**给 Tauri；②读取列表和消费时调 Tauri command。
+> - 前端不维护第二份提醒列表，只保留极轻的 in-flight 去重（防止短时间内重复上报）。
+> - 用户一旦真正进入某条正在提醒的会话，立刻消费该会话全部提醒，停止闪烁。
+
+---
+
+**Q8：流式输出时滚动怎么处理？**
+
+> stick-to-bottom 机制：
+> - 用户在底部时 `shouldStickToBottom=true`，新内容自动 `forceScrollToBottom`。
+> - 用户上滑（wheel/touch/keydown）后取消吸底，显示跳转按钮。
+> - 新消息到达时有个 7s 的 `preserveBottomUntil` 窗口：在这个窗口内即使不吸底也强制回底，避免流式输出中用户短暂上滑就丢失跟随。
+> - 用 `settleScrollToBottom(6)` 在 6 帧内反复校准，确保异步渲染后也到底。
+> - `autoScrollGuardRef` 防止程序滚动触发 `handleScroll` 误判用户意图。
+
+---
+
+**Q9：内联重命名输入法卡死怎么解决的？**
+
+> antd `Dropdown` 关闭导致首次 `blur`，和中文输入法 `composition` 结束后的提交，时序打架，导致"点击重命名无输入框"或"回车/失焦后卡住"。
+>
+> 解决：侧边栏重命名不依赖"先写父 state、下一帧再提交父 state"的链路，直接提交当前输入值。fallback 侧边栏重命名成功后还要显式同步 `chatStore.displayedConversationTitle`，否则左侧已变更但右侧仍回显旧标题。
+
+---
+
+**Q10：标题收口为什么要单独做？**
+
+> 标题来源太多：左侧点选、路由恢复、新建会话、重命名、首条消息自动派生、历史快照、live sessions、搜索 fallback……多来源择优会把用户刚选中或刚重命名的标题覆盖回旧值。
+>
+> 规则：
+> - 右侧内容区标题**只读 `chatStore`** 中的当前展示会话标题，单一来源。
+> - 本地重命名 override 优先级最高，在 `sessions.list` 还没把新标题刷回之前不被旧快照覆盖。
+> - 切换会话时如果链路没拿到标题，回到默认新会话标题，不沿用上一条。
+> - 不在聊天页渲染阶段从多来源重新择优。
+
+---
+
+**Q11：WS payload 加密具体怎么做的？**
+
+> 密钥派生：`K = SHA-256( UTF8(trim(JWT)) ∥ UTF8(OBF_SALT) )`，OBF_SALT 是固定盐 `InoClaw-Obf-v1`，密钥 32 字节。
+>
+> 加密：逐字节 `out[i] = data[i] ^ K[i & 31]`，帧首加 `0xf0` 版本标识。
+>
+> 为什么纯 JS 不用 Web Crypto：`crypto.subtle` 在非 secure context 或部分 WebView 不可用，纯 JS SHA-256（`@noble/hashes`）在能执行 bundle 的环境下恒可用。密钥按 JWT 缓存，命中时 O(1)。
+>
+> 注意：这是混淆级别加密（XOR），防的是中间人明文抓包，不是强加密。面试可以诚实说"这是载荷混淆，主要防明文嗅探"。
+
+---
+
+**Q12：设备身份签名怎么做的？**
+
+> 用 Web Crypto `crypto.subtle.generateKey` 生成 **Ed25519** 密钥对。
+> - `deviceId = SHA-256(publicKey)` 的 hex，作为设备唯一标识。
+> - 签名 payload 格式：`v2|deviceId|clientId|clientMode|role|scopes|signedAtMs|token|nonce`，用 Ed25519 私钥签名，base64url 编码。
+> - 持久化：桌面模式存 Tauri desktop state（Rust 侧文件），浏览器模式存 localStorage。
+> - 安全前提：`window.isSecureContext && crypto.subtle` 可用才启用。
+> - 桌面端启动时优先从 desktop state 读，读不到再从 legacy localStorage 迁移，迁移后清 localStorage。
+
+---
+
+**Q13：Cron 触发会话和普通会话怎么区分身份？**
+
+> Cron 提醒以 `cron.finished` 事件里的 run key `sessionKey` 为唯一身份，不再依赖 `chat final` 补齐，也不把 `sessionId` 作为提醒身份的一部分。
+>
+> 定时任务历史列表渲染前会把一次具体执行归一成可唯一寻址的 cron run key：如果后端返回的是聚合 key 但同时带了 `sessionId`，前端改写成 `...:run:<sessionId>`，避免不同执行轮次共用同一把历史缓存导致列表卡住、右侧内容串用。
+>
+> 普通历史记录切换仍保留 `sessionId` 作为前端会话身份的一部分区分同一 `sessionKey` 下的不同记录，但 `chat.history` 请求只传 `episodeId`，不透传 `sessionId`。
+
+---
+
+**Q14：Markdown 渲染链路？**
+
+> `react-markdown` 为核心，插件链：
+> - **remark 阶段**：`remark-gfm`（表格/任务列表/删除线）、`remark-math`（数学公式）、`remark-supersub`（上下标）、`remark-flexible-markers`、`remark-gemoji`、`remark-deflist`
+> - **rehype 阶段**：`rehype-katex`（KaTeX 渲染）、`rehype-highlight`（highlight.js 代码高亮）、`rehype-raw`（允许原始 HTML）
+> - Mermaid 单独处理
+>
+> 流式输出时用 `MessageRenderErrorBoundary` + `resetKey` 稳定错误边界：`resetKey` 在 streaming 时固定为 `id:streaming`，避免每个 chunk 重置边界触发嵌套更新；非 streaming 时用 `id:measureSignature`。
+
+---
+
+**Q15：主题切换怎么实时同步到托盘子窗口？**
+
+> `AppPreferencesContext` 设置 `document.documentElement.dataset.appTheme` 和 `document.body.dataset.appTheme`。
+> - 通过 `localStorage` 持久化偏好。
+> - 依靠 `storage` 事件把主题/语言实时同步到托盘提醒弹窗等**独立桌面子窗口**（子窗口监听同一 localStorage）。
+> - 样式通过 CSS 变量和 `[data-app-theme='classic-dark']` 选择器覆盖。
+> - antd Modal 统一走 `src/components/app/antdModal.tsx` 封装，补 `rootClassName` 防样式泄漏。
+
+---
+
+**Q16：consoleApi 门面模式的好处？**
+
+> - gateway 协议有统一前端索引，方便定位 API 影响范围。
+> - 降低多页面重复拼参数的风险。
+> - 类型优先放 `src/types/console.ts`，有类型安全。
+> - AI 和新人开发者能快速找到 API 定义。
+> - 底层通信层（gatewayRpc）和业务调用解耦，页面不感知 method 字符串。
+>
+> 代价：新增 API 多一步类型和门面方法，简单调用也不能绕过。
+
+---
+
+**Q17：本地 gateway 服务怎么管理？进程崩溃怎么办？**
+
+> Tauri 侧（Rust）负责：
+> - `gateway_bootstrap` command 探活本地 `inoclaw-service`，没启动就启动。
+> - 前端 `useAppBootstrap` hook 监听 `desktop://service-ready` / `desktop://service-error` 事件。
+> - 服务就绪后 `getGatewayBootstrap({ refresh: true })` 拿到连接信息建 WebSocket。
+> - 浏览器开发模式通过 env fallback 运行，不依赖 Tauri。
+>
+> 进程崩溃：service-error 事件触发前端提示，Tauri 侧负责重启逻辑。前端不直接管进程生命周期细节。
+
+---
+
+**Q18：React 19 你用了什么新特性？**
+
+> **诚实回答**：项目升级到了 React 19，但主要利用的是其并发渲染稳定性和 `useSyncExternalStore`（这个是 18 引入的，19 下更稳定）。没有大量使用 `use()`、`useActionState`、`useOptimistic` 等 19 的新 API。
+>
+> React 19 对我们的实际价值：
+> - 并发特性稳定，自研 store 基于 `useSyncExternalStore` 更可靠。
+> - `React.memo` 语义更清晰（MessageList 用了 `React.memo`）。
+> - 错误边界行为更可预期。
+>
+> **注意**：不要吹用了 `use()` / `useActionState` 等，代码里没有，面试官追问会穿帮。
+
+---
+
+**Q19：桌面应用更新怎么做？应用更新和运行时更新区别？**
+
+> - **应用更新**：Tauri updater plugin，签名校验，下载新安装包替换。前端 `updaterStore` + `updaterService` 管理更新状态。
+> - **运行时更新**：`src-tauri/src/runtime_update.rs`，更新本地 gateway/service 运行时，不需要重装整个应用。
+> - 系统设置页有更新入口，`lib/desktop.ts` 提供 launch-on-startup / runtime update / titlebar 等桌面能力桥。
+
+---
+
+**Q20：Sentry 怎么接入的？**
+
+> `src/lib/errorTracking.ts` 封装 Sentry：
+> - `main.tsx` 启动时 `initErrorTracking()` 初始化。
+> - 登录后 `setErrorTrackingUser()` 关联用户信息。
+> - `AppErrorBoundary` 捕获渲染错误。
+> - 各处用 `captureException` 上报。
+> - WS 通信错误、gateway 错误都走 `createAppError` / `toAppError` 统一格式后可上报。
+
+---
+
+## 五、难点 & 为什么这么做（讲故事用）
+
+| 难点 | 问题 | 方案 | 为什么这么做 |
+|---|---|---|---|
+| **多 run 竞态** | 同 sessionKey 上多条 run 实时流会串 | 可见会话只绑一条活跃 run，后到 run 等 terminal 后走 history 刷新；`final` 后尾流丢弃 | 防消息丢失/重复，UI 与真实运行态一致 |
+| **abort 假停止** | abort 没发出就清 UI，被晚到流续上 | 先确认 `chat.abort` 已发出再清本地态；dispatch 阶段停止则一并取消待发送 | 避免"假停止" |
+| **标题收口** | 标题来源多互相覆盖 | 右侧标题只读 store 单一来源，本地重命名 override 优先级最高 | 杜绝渲染阶段多来源择优覆盖 |
+| **Gateway 握手重连** | 断连/JWT 失效/challenge 超时 | challenge 先发 nonce，限制重连与静默重试次数 | 通信稳定性 |
+| **托盘 popup 时序** | 桌面端与前端各维护 popup 状态打架 | popup 可见态只在 Tauri 侧，前端不维护第二份 | 避免闪退/闪烁停不下来 |
+| **内联重命名输入法** | Dropdown blur + composition 顺序错卡死 | 直接提交当前输入值，不依赖"先写父 state 下一帧再提交" | 中文输入法兼容 |
+| **虚拟列表动态高度** | 消息高度不固定，流式输出时高度变化 | 预估算法 + 实测修正 + signature 缓存 + rAF 批处理 + 滚动补偿 | 既要虚拟化又要高度准确 |
+| **浏览器/Tauri 双模式** | 浏览器无 Tauri 能力 | env fallback，`lib/gateway.ts` 走 invoke 或环境变量兜底 | 开发体验 |
+| **WebView2 崩溃** | 部分机器 `RendererCodeIntegrity` 导致 `STATUS_ILLEGAL_INSTRUCTION` | 统一禁用该参数 | 兼容性 |
+| **WS payload 明文** | 中间人可嗅探明文 | SHA-256 派生密钥 + XOR 混淆，纯 JS 实现 | 防明文抓包，适配各类 WebView |
+
+## 六、核心总结（面试开场一句话）
+
+> 项目核心是「基于 Tauri 2 + React 19 的 AI Agent 桌面客户端」，**两大技术核心**：① 自研 WebSocket RPC 通信层（challenge 握手/重连/JWT/XOR 加密/Ed25519 设备签名）；② 实时流式聊天的多 run 竞态控制与状态隔离。**最大工程亮点**是自研动态高度虚拟列表解决聊天消息流式渲染卡顿。
+
+---
+
+## 七、建议补充的点（你之前没提但是亮点）
+
+1. **动态高度预估算法**——虚拟列表最硬核部分，简历必写，面试必问
+2. **signature 缓存 + 实测修正**——避免重复计算的思考
+3. **rAF 批处理 + 滚动位置补偿**——流式场景细节
+4. **安全**：Ed25519 设备身份签名 + WS payload XOR 混淆——加分项
+5. **工程文档体系**：AGENTS.md + ADR + 风险区清单——工程素养
+6. **量化数据**：建议补——11 个主路由页面、Rust 模块（gateway.rs 113KB）、三语国际化、双主题
+7. **打包发布闭环**：签名构建脚本（`tauri-build-signed.mjs`）、NSIS 安装器、安装器 bootstrap
+
+## 八、风险提醒（简历写法注意）
+
+1. **"前端主导"**：明确写"负责通信层/聊天引擎/桌面集成/性能优化"，别写"全栈"，后端 gateway 是对接的
+2. **"几百人"**：写"集团内部数百用户"，别夸大
+3. **性能无量化**：简历写"显著改善滚动流畅度"，面试诚实说"以体验验收为主，如果重做会加 FPS/长任务监控"，别编数字
+4. **虚拟列表**：简历可写"自研"，面试必须能讲清预估算法和 signature 机制
+5. **React 19**：不要吹 `use()` / `useActionState`，代码里没有，诚实说"主要用并发渲染稳定性 + useSyncExternalStore"
+6. **XOR 加密**：面试诚实说"这是载荷混淆防明文嗅探，不是强加密"，别说成 AES 级安全
+7. **团队协作**：准备 1-2 个线上问题排查故事（多 run 竞态、abort 假停止都是好素材）
+
+---
+
+需要我把这份内容整理成一个 Markdown 文件保存到项目里吗？或者针对某个模块（比如虚拟列表）再展开成更详细的面试讲稿？
